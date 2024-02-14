@@ -82,7 +82,7 @@ def import_tulip_table(instance: str = None, authorization: str = None, table_id
     iteration = 0
 
     # Initialize parameters for paginated requests
-    default_limit = 100
+    default_limit = max_limit if max_limit > 0 and max_limit < 100 else 100
     offset = 0
     all_records = []
 
