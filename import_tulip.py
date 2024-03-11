@@ -78,11 +78,11 @@ def import_tulip_table(instance: str = None, authorization: str = None, table_id
     max_limit = int(parsed_query.get("limit", [0])[0])
     
     # Calculate the maximum number of iterations for pagination
-    max_iterations = max_limit / 100 if max_limit != 0 else 99999999
+    max_iterations = max_limit / 1000 if max_limit != 0 else 99999999
     iteration = 0
 
     # Initialize parameters for paginated requests
-    default_limit = max_limit if max_limit > 0 and max_limit < 100 else 100
+    default_limit = max_limit if max_limit > 0 and max_limit < 1000 else 1000
     offset = 0
     all_records = []
 
