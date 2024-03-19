@@ -110,12 +110,6 @@ def import_tulip_table(instance: str = None, authorization: str = None, table_id
     # Convert list of records to a Pandas DataFrame
     df = pd.DataFrame(all_records)
     
-    if drop_hidden:
-        # Identify and drop columns marked as 'hidden'
-        hidden_columns = [entry['name'] for entry in table_columns if entry.get('hidden')]
-        # Drop hidden columns from DataFrame
-        df.drop(columns=hidden_columns, errors='ignore', inplace=True)
-
     # Handle case where DataFrame is empty
     if df.empty:
         column_names = [column["name"] for column in table_columns]
@@ -123,6 +117,12 @@ def import_tulip_table(instance: str = None, authorization: str = None, table_id
         df['_createdAt'] = None
         df['_updatedAt'] = None
         df['_Sequencenumber'] = None
+        
+    if drop_hidden:
+        # Identify and drop columns marked as 'hidden'
+        hidden_columns = [entry['name'] for entry in table_columns if entry.get('hidden')]
+        # Drop hidden columns from DataFrame
+        df.drop(columns=hidden_columns, errors='ignore', inplace=True)
 
     # Process date columns, converting timezone to 'America/Montreal'
     for utc_col in ['_createdAt', '_updatedAt']:
