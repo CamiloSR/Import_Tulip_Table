@@ -113,7 +113,32 @@ def import_tulip_table(instance: str = None, authorization: str = None, table_id
     # Initialize a list to keep track of seen column names and a list for duplicates
     seen_columns = set()
     duplicated_columns = []
-    
+
+    # Handle case where DataFrame is empty
+    if df.empty:
+        column_names = [column["name"] for column in table_columns]
+        df = pd.DataFrame(columns=column_names)
+        df['_createdAt'] = None
+        df['_updatedAt'] = None
+        df['_Sequencenumber'] = None
+
+    # Process date columns, converting timezone to 'America/Montreal'
+    for utc_col in ['_createdAt', '_updatedAt']:
+        try:
+            df[utc_col] = pd.to_datetime(df[utc_col])
+            if df[utc_col].dt.tz is None:
+                df[utc_col] = df[utc_col].dt.tz_localize('UTC').dt.tz_convert('America/Montreal')
+            else:
+                df[utc_col] = df[utc_col].dt.tz_convert('America/Montreal')
+        except:
+            print(f"Column {utc_col} does not Exist")
+
+    # Rename columns if specified
+    if rename_columns:
+        column_mapping = {entry['name']: entry['label'] for entry in table_columns}
+        df.rename(columns=column_mapping, errors='ignore', inplace=True)
+        df.rename(columns={"_createdAt": "Created_At", "_updatedAt": "Updated_At"}, errors='ignore', inplace=True)
+
     # Check if there are any duplicate column names
     if len(df.columns) != len(set(df.columns)):
         # Initialize a dictionary to track occurrences of each column
@@ -142,31 +167,6 @@ def import_tulip_table(instance: str = None, authorization: str = None, table_id
     
         # Print the list of duplicated column names
         print("Duplicated columns found and renamed:", duplicated_columns)
-
-    # Handle case where DataFrame is empty
-    if df.empty:
-        column_names = [column["name"] for column in table_columns]
-        df = pd.DataFrame(columns=column_names)
-        df['_createdAt'] = None
-        df['_updatedAt'] = None
-        df['_Sequencenumber'] = None
-
-    # Process date columns, converting timezone to 'America/Montreal'
-    for utc_col in ['_createdAt', '_updatedAt']:
-        try:
-            df[utc_col] = pd.to_datetime(df[utc_col])
-            if df[utc_col].dt.tz is None:
-                df[utc_col] = df[utc_col].dt.tz_localize('UTC').dt.tz_convert('America/Montreal')
-            else:
-                df[utc_col] = df[utc_col].dt.tz_convert('America/Montreal')
-        except:
-            print(f"Column {utc_col} does not Exist")
-
-    # Rename columns if specified
-    if rename_columns:
-        column_mapping = {entry['name']: entry['label'] for entry in table_columns}
-        df.rename(columns=column_mapping, errors='ignore', inplace=True)
-        df.rename(columns={"_createdAt": "Created_At", "_updatedAt": "Updated_At"}, errors='ignore', inplace=True)
 
     # Standardize column names: capitalize and replace spaces with underscores
     df.columns = [col.upper() if col == "ID" else col.title() for col in df.columns]
