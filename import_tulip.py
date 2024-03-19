@@ -3,7 +3,7 @@ import pandas as pd
 import base64
 import urllib.parse
 
-def import_tulip_table(instance: str = None, authorization: str = None, table_id: str = None, table_name: str = None, rename_columns: bool = True, query: str = "") -> pd.DataFrame:
+def import_tulip_table(instance: str = None, authorization: str = None, table_id: str = None, table_name: str = None, drop_hidden: bool = True, rename_columns: bool = True, query: str = "") -> pd.DataFrame:
     """
     Import data from a Tulip table into a Pandas DataFrame.
     You can specify either the Table Name or the Table ID; however, using the Table ID is preferred.
@@ -109,6 +109,13 @@ def import_tulip_table(instance: str = None, authorization: str = None, table_id
 
     # Convert list of records to a Pandas DataFrame
     df = pd.DataFrame(all_records)
+    
+    if drop_hidden:
+        # Identify and drop columns marked as 'hidden'
+        hidden_columns = [entry['name'] for entry in table_columns if entry.get('hidden')]
+        
+        # Drop hidden columns from DataFrame
+        df.drop(columns=hidden_columns, errors='ignore', inplace=True)
 
     # Initialize a list to keep track of seen column names and a list for duplicates
     seen_columns = set()
