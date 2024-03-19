@@ -113,13 +113,8 @@ def import_tulip_table(instance: str = None, authorization: str = None, table_id
     if drop_hidden:
         # Identify and drop columns marked as 'hidden'
         hidden_columns = [entry['name'] for entry in table_columns if entry.get('hidden')]
-        
         # Drop hidden columns from DataFrame
         df.drop(columns=hidden_columns, errors='ignore', inplace=True)
-
-    # Initialize a list to keep track of seen column names and a list for duplicates
-    seen_columns = set()
-    duplicated_columns = []
 
     # Handle case where DataFrame is empty
     if df.empty:
@@ -146,6 +141,10 @@ def import_tulip_table(instance: str = None, authorization: str = None, table_id
         df.rename(columns=column_mapping, errors='ignore', inplace=True)
         df.rename(columns={"_createdAt": "Created_At", "_updatedAt": "Updated_At"}, errors='ignore', inplace=True)
 
+    # Initialize a list to keep track of seen column names and a list for duplicates
+    seen_columns = set()
+    duplicated_columns = []
+    
     # Check if there are any duplicate column names
     if len(df.columns) != len(set(df.columns)):
         # Initialize a dictionary to track occurrences of each column
@@ -173,7 +172,7 @@ def import_tulip_table(instance: str = None, authorization: str = None, table_id
         df.columns = new_columns
     
         # Print the list of duplicated column names
-        print("Duplicated columns found and renamed:", duplicated_columns)
+        print(f"Duplicated columns found and renamed in table {table_name}: {duplicated_columns}")
 
     # Standardize column names: capitalize and replace spaces with underscores
     df.columns = [col.upper() if col == "ID" else col.title() for col in df.columns]
