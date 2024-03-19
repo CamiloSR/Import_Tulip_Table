@@ -110,6 +110,39 @@ def import_tulip_table(instance: str = None, authorization: str = None, table_id
     # Convert list of records to a Pandas DataFrame
     df = pd.DataFrame(all_records)
 
+    # Initialize a list to keep track of seen column names and a list for duplicates
+    seen_columns = set()
+    duplicated_columns = []
+    
+    # Check if there are any duplicate column names
+    if len(df.columns) != len(set(df.columns)):
+        # Initialize a dictionary to track occurrences of each column
+        column_occurrences = {}
+    
+        # Lists to hold the updated column names and track duplicates
+        new_columns = []
+        duplicated_columns = []
+    
+        for col in df.columns:
+            # Increment the occurrence count for this column name
+            if col in column_occurrences:
+                column_occurrences[col] += 1
+                # Since this is a duplicate, append the occurrence count to its name
+                new_column_name = f"{col}_{column_occurrences[col]}"
+                new_columns.append(new_column_name)
+                if col not in duplicated_columns:
+                    duplicated_columns.append(col)
+            else:
+                # If it's the first occurrence, keep the name and set its count to 1
+                column_occurrences[col] = 1
+                new_columns.append(col)
+    
+        # Update the DataFrame's columns
+        df.columns = new_columns
+    
+        # Print the list of duplicated column names
+        print("Duplicated columns found and renamed:", duplicated_columns)
+
     # Handle case where DataFrame is empty
     if df.empty:
         column_names = [column["name"] for column in table_columns]
